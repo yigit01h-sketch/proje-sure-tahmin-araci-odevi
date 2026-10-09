@@ -18,8 +18,8 @@ st.set_page_config(
     layout="centered",
 )
 
-PRIMARY = "##590a04"
-NAVY = "#590a04"
+PRIMARY = "#590a04"
+NAVY = "#F4F7FA"
 AMBER = "#E8A838"
 GREEN = "#2E7D32"
 RED = "#C0392B"
