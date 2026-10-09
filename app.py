@@ -72,7 +72,7 @@ st.markdown(f"""
 st.markdown("""
 <div class="app-header">
     <h1>⏱️ İnşaat Proje Süresi Tahmin Aracı</h1>
-    <p>Yiğit Hacı Arif Kütük - 2022232602</p>
+    <p>Yiğit Hacı Arif Kütük - 2022232602 - 05327115964 </p>
 </div>
 """, unsafe_allow_html=True)
 
