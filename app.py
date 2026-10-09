@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-İnşaat Proje Maliyeti Tahmin Aracı
-Hafta 2'de kurduğumuz lineer regresyon modellerinin "gerçek kullanım ortamı".
-Kod bilmeyen biri bile bu ekrandan tahmini maliyeti öğrenebilir.
+İnşaat Proje Süresi Tahmin Aracı
+Lineer regresyon modelleri ile proje süre tahmin arayüzü.
 """
 import json
 import joblib
@@ -14,8 +13,8 @@ import streamlit as st
 # Sayfa ayarları ve stil
 # ------------------------------------------------------------------
 st.set_page_config(
-    page_title="İnşaat Maliyet Tahmin Aracı",
-    page_icon="🏗️",
+    page_title="İnşaat Süre Tahmin Aracı",
+    page_icon="⏱️",
     layout="centered",
 )
 
@@ -72,18 +71,18 @@ st.markdown(f"""
 
 st.markdown("""
 <div class="app-header">
-    <h1>🏗️ İnşaat Proje Maliyeti Tahmin Aracı</h1>
-    <p>İnşaat Mühendisliğinde Yapay Zekâ Uygulamaları — Hafta 2 Lab Projesi</p>
+    <h1>⏱️ İnşaat Proje Süresi Tahmin Aracı</h1>
+    <p>İnşaat Mühendisliğinde Yapay Zekâ Uygulamaları — Proje Süre Tahmini</p>
 </div>
 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
-# Model ve metaveriyi yükle (Hücre 6'da kaydettiğimiz dosyalar)
+# Model ve metaveriyi yükle
 # ------------------------------------------------------------------
 @st.cache_resource
 def yukle():
-    basit = joblib.load("models/maliyet_modeli_basit.pkl")
-    gelismis = joblib.load("models/maliyet_modeli_gelismis.pkl")
+    basit = joblib.load("models/sure_modeli_basit.pkl")
+    gelismis = joblib.load("models/sure_modeli_gelismis.pkl")
     with open("models/meta.json", encoding="utf-8") as f:
         meta = json.load(f)
     return basit, gelismis, meta
@@ -103,9 +102,8 @@ except FileNotFoundError:
 st.sidebar.markdown("### ⚙️ Model Seçimi")
 model_secimi = st.sidebar.radio(
     "Hangi modeli kullanmak istersiniz?",
-    ["Basit Model (Hücre 5)", "Gelişmiş Model (Hücre 5 — Devam)"],
-    help="Basit model sadece alan ve kat sayısını kullanır. Gelişmiş model "
-         "zemin sınıfı ve inşaat yılını da ekler (bkz. Hafta 2 ders notu).",
+    ["Basit Model", "Gelişmiş Model"],
+    help="Basit model sadece alan ve kat sayısını kullanır. Gelişmiş model zemin sınıfı ve inşaat yılını da ekler.",
 )
 gelismis_mi = model_secimi.startswith("Gelişmiş")
 
@@ -115,20 +113,12 @@ if gelismis_mi:
     m = meta["gelismis_model"]
     st.sidebar.metric("Test R²", f"{m['r2']:.3f}")
     st.sidebar.metric("Train R²", f"{m['train_r2']:.3f}")
-    st.sidebar.metric("Test MAE", f"{m['mae']:,.0f} TL")
-    st.sidebar.caption(
-        "⚠️ Train R² ile Test R² arasındaki büyük fark, bu modelin "
-        "**aşırı öğrenme (overfitting)** riski taşıdığını gösterir — "
-        "Hafta 2'de birlikte incelediğimiz konu tam olarak budur."
-    )
+    st.sidebar.metric("Test MAE", f"{m['mae']:.1f} ay")
 else:
     m = meta["basit_model"]
     st.sidebar.metric("Test R²", f"{m['r2']:.3f}")
-    st.sidebar.metric("Test MAE", f"{m['mae']:,.0f} TL")
-    st.sidebar.caption(
-        "⚠️ R² negatif — bu, modelin sadece 2 değişkenle (alan, kat) "
-        "yeterince açıklayıcı olmadığının işaretidir."
-    )
+    st.sidebar.metric("Test MAE", f"{m['mae']:.1f} ay")
+
 st.sidebar.markdown("---")
 st.sidebar.caption(f"Eğitim verisi: {meta['n_proje']} proje kaydı")
 
@@ -160,7 +150,7 @@ if gelismis_mi:
         )
 
 # ------------------------------------------------------------------
-# Ekstrapolasyon kontrolü (Hafta 2, "Modelin Sınırlarını Bilmek")
+# Ekstrapolasyon kontrolü
 # ------------------------------------------------------------------
 def araligin_disinda_mi(deger, anahtar):
     lo, hi = meta[anahtar]["min"], meta[anahtar]["max"]
@@ -181,7 +171,7 @@ if gelismis_mi:
 # ------------------------------------------------------------------
 # Tahmin
 # ------------------------------------------------------------------
-if st.button("💰 Maliyeti Tahmin Et", type="primary", use_container_width=True):
+if st.button("⏱️ Süreyi Tahmin Et", type="primary", use_container_width=True):
     if gelismis_mi:
         row = {"alan_m2": alan_m2, "kat_sayisi": kat_sayisi, "insaat_yili": insaat_yili,
                "zemin_sinifi_B": 0, "zemin_sinifi_C": 0, "zemin_sinifi_D": 0}
@@ -196,8 +186,8 @@ if st.button("💰 Maliyeti Tahmin Et", type="primary", use_container_width=True
     if uyarilar:
         st.markdown(f"""
         <div class="result-box" style="background-color:{RED};">
-            <div class="value">{tahmin:,.0f} TL</div>
-            <div class="label">Tahmini Toplam Maliyet — GÜVENİLİR DEĞİL</div>
+            <div class="value">{tahmin:.1f} ay</div>
+            <div class="label">Tahmini İnşaat Süresi — GÜVENİLİR DEĞİL</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown(
@@ -209,8 +199,8 @@ if st.button("💰 Maliyeti Tahmin Et", type="primary", use_container_width=True
     else:
         st.markdown(f"""
         <div class="result-box">
-            <div class="value">{tahmin:,.0f} TL</div>
-            <div class="label">Tahmini Toplam Maliyet</div>
+            <div class="value">{tahmin:.1f} ay</div>
+            <div class="label">Tahmini İnşaat Süresi</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown(
@@ -222,28 +212,25 @@ if st.button("💰 Maliyeti Tahmin Et", type="primary", use_container_width=True
         if gelismis_mi:
             c = meta["gelismis_model"]["coefs"]
             st.markdown(f"""
-Gelişmiş model, her özelliğin katsayısını (diğerleri sabitken) şu şekilde kullanır:
+Gelişmiş model, her özelliğin katsayısını şu şekilde kullanır:
 
-- Alan katsayısı: **{c['alan_m2']:,.0f} TL/m²**
-- Kat katsayısı: **{c['kat_sayisi']:,.0f} TL/kat**
-- Yıl katsayısı: **{c['insaat_yili']:,.0f} TL/yıl**
-- Zemin B/C/D etkisi: **{c['zemin_sinifi_B']:,.0f}** / **{c['zemin_sinifi_C']:,.0f}** / **{c['zemin_sinifi_D']:,.0f}** TL (A zeminine göre farkı)
+- Alan katsayısı: **{c['alan_m2']:.4f} ay/m²**
+- Kat katsayısı: **{c['kat_sayisi']:.4f} ay/kat**
+- Yıl katsayısı: **{c['insaat_yili']:.4f} ay/yıl**
+- Zemin B/C/D etkisi: **{c['zemin_sinifi_B']:.4f}** / **{c['zemin_sinifi_C']:.4f}** / **{c['zemin_sinifi_D']:.4f}** ay (A zeminine göre farkı)
             """)
         else:
             b = meta["basit_model"]
             st.markdown(f"""
 Basit model şu formülü kullanır:
 
-**Maliyet = {b['alan_katsayisi']:,.0f} × Alan + {b['kat_katsayisi']:,.0f} × Kat + sabit**
+**Süre = {b['alan_katsayisi']:.4f} × Alan + {b['kat_katsayisi']:.4f} × Kat + sabit**
             """)
         st.caption(
-            "Not: Bu bir karar destek aracıdır, karar verici değil. Nihai kararı her zaman mühendis verir "
-            "(bkz. Hafta 2 ders notu, Bölüm: Model Eğitildikten Sonra Nasıl Kullanılır?)."
+            "Not: Bu bir karar destek aracıdır. Nihai kararı her zaman proje yöneticisi ve mühendis verir."
         )
 
 st.markdown("---")
 st.caption(
-    "Bu araç, Hafta 2 dersinde eğitilip Google Drive'a kaydedilen modelin "
-    "kod yazmayan kullanıcılar için bir web arayüzüne taşınmış hâlidir. "
-    "İnşaat Mühendisliğinde Yapay Zekâ Uygulamaları | 4. Sınıf | Güz Yarıyılı"
+    "İnşaat Mühendisliğinde Yapay Zekâ Uygulamaları | Proje Süre Tahmin Aracı"
 )
