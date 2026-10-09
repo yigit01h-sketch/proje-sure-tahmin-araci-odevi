@@ -48,7 +48,7 @@ st.markdown(f"""
     .result-box .value {{ font-size: 2.3rem; font-weight: 700; }}
     .result-box .label {{ font-size: 0.95rem; opacity: 0.85; }}
     .warn-box {{
-        background-color: #4f4c4c;
+        background-color: #FDEDEC;
         border: 1.5px solid {RED};
         color: {RED};
         padding: 0.9rem 1.1rem;
