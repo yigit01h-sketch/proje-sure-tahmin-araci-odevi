@@ -22,7 +22,7 @@ PRIMARY = "#590a04"
 NAVY = "#590a04"
 AMBER = "#E8A838"
 GREEN = "#2E7D32"
-RED = "#C0392B"
+RED = "#4f4c4c"
 
 st.markdown(f"""
 <style>
